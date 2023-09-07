@@ -5,19 +5,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCoords, setCoordsMark, setLoading, setMock, setSearch } from "@/store/reducers/mainReducer";
 import { RootState } from "@/store/store";
 
-
 const YandexMap = () => {
     const dispatch = useDispatch();
 
-    const {search, loading, mock, coords, coordsMark} = useSelector((state: RootState) => state);
+    const {search, loading, mock, coords, coordsMark, needAsyncFetch} = useSelector((state: RootState) => state);
     const [yamapsState, setYamapsState] = useState<typeof window.ymaps | null>(null);
     const [timeoutSearch, setTimeoutSearch] = useState<NodeJS.Timeout | undefined>(undefined);
 
-    const fetchLocation = () => {
-        yamapsState?.geocode(search || coords)
+    const fetchLocation = (value: string | readonly number[]) => {
+        yamapsState?.geocode(value)
             .then((res) => {
                 const firstGeoObject = res.geoObjects.get(0);
-                const firstGeoObjectCoords = res?.geoObjects?.get(0)?.geometry?.getCoordinates();
+                const firstGeoObjectCoords = res.geoObjects.get(0).geometry?.getCoordinates();
 
                 if (!Array.isArray(firstGeoObject)) {
                     dispatch(setMock(firstGeoObjectCoords));
@@ -27,6 +26,7 @@ const YandexMap = () => {
 
                 dispatch(setSearch(firstGeoObject.getAddressLine()));
                 dispatch(setLoading(false));
+                dispatch(setCoords([]));
             })
             .catch(() => {
                 message.error("Несуществующий адрес");
@@ -35,20 +35,30 @@ const YandexMap = () => {
     };
 
     useEffect(() => {
-        if (yamapsState && (coords.length > 0 || search)) {
+        if (yamapsState && search && needAsyncFetch) {
             dispatch(setLoading(true));
             if (timeoutSearch)
                 clearTimeout(timeoutSearch);
             setTimeoutSearch(setTimeout(() =>
-                fetchLocation(), 1000)
+                fetchLocation(search), 1000)
             );
         }
-    }, [yamapsState, search, coords]);
+    }, [search]);
+    useEffect(() => {
+        if (yamapsState && coords.length > 0) {
+            dispatch(setLoading(true));
+            if (timeoutSearch)
+                clearTimeout(timeoutSearch);
+            setTimeoutSearch(setTimeout(() =>
+                fetchLocation(coords), 1000)
+            );
+        }
+    }, [yamapsState, coords]);
     return (
         <Map
             onLoad={(ymaps) => setYamapsState(ymaps)}
             state={{
-                center: coordsMark?.length > 0
+                center: coordsMark.length > 0
                     ? coordsMark
                     : [55.75, 37.57],
                 zoom: 9
@@ -57,23 +67,28 @@ const YandexMap = () => {
             height={400}
             modules={["geocode"]}
             onClick={(event: any) => {
-                dispatch(setCoords(event.get("coords")));
-                dispatch(setSearch(""));
+                dispatch(setCoords(event.get("coords")))
+                dispatch(setCoordsMark(event.get("coords")));
             }}
         >
-            <Placemark
-                geometry={coordsMark?.length > 0 ? coordsMark : coords}
-                options={{
-                    iconImageSize: [30, 30],
-                    draggable: true,
-                    preset: "islands#yellowIcon",
-                    hideIconOnBalloonOpen: false,
-                    openEmptyHint: true
-                }}
-                properties={{
-                    iconContent: "+"
-                }}
-            />
+            {(coordsMark.length > 0 || coords.length > 0) &&
+                <Placemark
+                    geometry={coordsMark.length > 0
+                        ? coordsMark
+                        : coords
+                    }
+                    options={{
+                        iconImageSize: [30, 30],
+                        draggable: true,
+                        preset: "islands#yellowIcon",
+                        hideIconOnBalloonOpen: false,
+                        openEmptyHint: true
+                    }}
+                    properties={{
+                        iconContent: "+"
+                    }}
+                />
+            }
             {!loading && (coordsMark.length > 0 || coords.length > 0) &&
                 mock.map((elem) =>
                     <Placemark

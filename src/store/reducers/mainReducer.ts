@@ -8,6 +8,7 @@ const initialState: State = {
     crewsList: [],
     coords: [],
     coordsMark: [],
+    needAsyncFetch: false,
     mock: [
         {
             "crew_id": 123,
@@ -66,6 +67,17 @@ const mainReducer = createSlice({
     reducers: {
         setSearch(state, action) {
             state.search = action.payload;
+            state.needAsyncFetch = false;
+        },
+        setSearchAsyncFetch(state, action) {
+            if (!action.payload) {
+                state.coords = [];
+                state.coordsMark = [];
+                state.relevantCrew = {} as Crew;
+            }
+            state.crewsList = [];
+            state.search = action.payload;
+            state.needAsyncFetch = true;
         },
         setLoading(state, action) {
             state.loading = action.payload;
@@ -95,7 +107,7 @@ const mainReducer = createSlice({
     }
 });
 export const {
-    setSearch, setLoading, setMock,
+    setSearch, setLoading, setMock, setSearchAsyncFetch,
     setRelevantCrew, setCoords, setCoordsMark
 } = mainReducer.actions;
 export default mainReducer.reducer;

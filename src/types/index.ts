@@ -5,6 +5,7 @@ export type State = {
     crewsList: Crew[];
     coords: readonly number[];
     coordsMark:number[];
+    needAsyncFetch: boolean;
     mock: Crew[];
 }
 export type Crew = {

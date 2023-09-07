@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setSearch } from "@/store/reducers/mainReducer";
+import { setSearchAsyncFetch } from "@/store/reducers/mainReducer";
 import { RootState } from "@/store/store";
 import { Spin } from "antd";
 
@@ -16,7 +16,7 @@ const From = () => {
             <input
                 value={search}
                 autoFocus={true}
-                onChange={(e) => dispatch(setSearch(e.target.value))}
+                onChange={(e) => dispatch(setSearchAsyncFetch(e.target.value))}
                 placeholder={"Search..."}
                 type="text"
             />
