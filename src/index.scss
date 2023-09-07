@@ -1,0 +1,21 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  list-style: none;
+}
+
+body {
+  font-size: 14px;
+  line-height: 14px;
+  background: #dad6d6;
+  font-family: 'Roboto', sans-serif;
+}
+
+.app {
+  .container {
+    margin: 30px auto;
+    max-width: 1300px;
+    width: 100%;
+  }
+}
